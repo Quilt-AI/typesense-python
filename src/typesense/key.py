@@ -44,32 +44,30 @@ class Key:
         self.key_id = key_id
         self.api_call = api_call
 
-    def retrieve(self) -> ApiKeySchema:
+    async def retrieve(self) -> ApiKeySchema:
         """
         Retrieve this specific API key.
 
         Returns:
             ApiKeySchema: The schema containing the API key details.
         """
-        response: ApiKeySchema = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path,
             as_json=True,
             entity_type=ApiKeySchema,
         )
-        return response
 
-    def delete(self) -> ApiKeyDeleteSchema:
+    async def delete(self) -> ApiKeyDeleteSchema:
         """
         Delete this specific API key.
 
         Returns:
             ApiKeyDeleteSchema: The schema containing the deletion response.
         """
-        response: ApiKeyDeleteSchema = self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path,
             entity_type=ApiKeyDeleteSchema,
         )
-        return response
 
     @property
     def _endpoint_path(self) -> str:

@@ -47,29 +47,27 @@ class Alias(object):
         self.api_call = api_call
         self.name = name
 
-    def retrieve(self) -> AliasSchema:
+    async def retrieve(self) -> AliasSchema:
         """
         Retrieve this specific alias.
 
         Returns:
             AliasSchema: The schema containing the alias details.
         """
-        response: AliasSchema = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path,
             entity_type=AliasSchema,
             as_json=True,
         )
-        return response
 
-    def delete(self) -> AliasSchema:
+    async def delete(self) -> AliasSchema:
         """
         Delete this specific alias.
 
         Returns:
             AliasSchema: The schema containing the deletion response.
         """
-        response = self.api_call.delete(self._endpoint_path, entity_type=AliasSchema)
-        return response
+        return await self.api_call.delete(self._endpoint_path, entity_type=AliasSchema)
 
     @property
     def _endpoint_path(self) -> str:

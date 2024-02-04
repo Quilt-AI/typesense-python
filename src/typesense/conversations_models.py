@@ -86,7 +86,7 @@ class ConversationsModels(object):
             )
         return self.conversations_models[model_id]
 
-    def create(self, model: ConversationModelCreateSchema) -> ConversationModelSchema:
+    async def create(self, model: ConversationModelCreateSchema) -> ConversationModelSchema:
         """
         Create a new conversation model.
 
@@ -97,24 +97,22 @@ class ConversationsModels(object):
         Returns:
             ConversationModelSchema: The created conversation model.
         """
-        response = self.api_call.post(
+        return await self.api_call.post(
             endpoint=ConversationsModels.resource_path,
             entity_type=ConversationModelSchema,
             as_json=True,
             body=model,
         )
-        return response
 
-    def retrieve(self) -> typing.List[ConversationModelSchema]:
+    async def retrieve(self) -> typing.List[ConversationModelSchema]:
         """
         Retrieve all conversation models.
 
         Returns:
             List[ConversationModelSchema]: A list of all conversation models.
         """
-        response: typing.List[ConversationModelSchema] = self.api_call.get(
+        return await self.api_call.get(
             endpoint=ConversationsModels.resource_path,
             entity_type=typing.List[ConversationModelSchema],
             as_json=True,
         )
-        return response

@@ -56,32 +56,30 @@ class Override:
         self.collection_name = collection_name
         self.override_id = override_id
 
-    def retrieve(self) -> OverrideSchema:
+    async def retrieve(self) -> OverrideSchema:
         """
         Retrieve this specific override.
 
         Returns:
             OverrideSchema: The schema containing the override details.
         """
-        response: OverrideSchema = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path(),
             entity_type=OverrideSchema,
             as_json=True,
         )
-        return response
 
-    def delete(self) -> OverrideDeleteSchema:
+    async def delete(self) -> OverrideDeleteSchema:
         """
         Delete this specific override.
 
         Returns:
             OverrideDeleteSchema: The schema containing the deletion response.
         """
-        response: OverrideDeleteSchema = self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path(),
             entity_type=OverrideDeleteSchema,
         )
-        return response
 
     def _endpoint_path(self) -> str:
         """

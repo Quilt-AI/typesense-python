@@ -93,7 +93,7 @@ class Overrides:
             )
         return self.overrides[override_id]
 
-    def upsert(self, override_id: str, schema: OverrideCreateSchema) -> OverrideSchema:
+    async def upsert(self, override_id: str, schema: OverrideCreateSchema) -> OverrideSchema:
         """
         Create or update an override.
 
@@ -104,26 +104,24 @@ class Overrides:
         Returns:
             OverrideSchema: The created or updated override.
         """
-        response: OverrideSchema = self.api_call.put(
+        return await self.api_call.put(
             endpoint=self._endpoint_path(override_id),
             entity_type=OverrideSchema,
             body=schema,
         )
-        return response
 
-    def retrieve(self) -> OverrideRetrieveSchema:
+    async def retrieve(self) -> OverrideRetrieveSchema:
         """
         Retrieve all overrides for the collection.
 
         Returns:
             OverrideRetrieveSchema: The schema containing all overrides.
         """
-        response: OverrideRetrieveSchema = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path(),
             entity_type=OverrideRetrieveSchema,
             as_json=True,
         )
-        return response
 
     def _endpoint_path(self, override_id: typing.Union[str, None] = None) -> str:
         """

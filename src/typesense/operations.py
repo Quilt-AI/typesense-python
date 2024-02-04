@@ -61,7 +61,7 @@ class Operations:
         self.api_call = api_call
 
     @typing.overload
-    def perform(
+    async def perform(
         self,
         operation_name: typing.Literal["vote"],
         query_params: None = None,
@@ -78,7 +78,7 @@ class Operations:
         """
 
     @typing.overload
-    def perform(
+    async def perform(
         self,
         operation_name: typing.Literal["db/compact"],
         query_params: None = None,
@@ -95,7 +95,7 @@ class Operations:
         """
 
     @typing.overload
-    def perform(
+    async def perform(
         self,
         operation_name: typing.Literal["cache/clear"],
         query_params: None = None,
@@ -113,7 +113,7 @@ class Operations:
         """
 
     @typing.overload
-    def perform(
+    async def perform(
         self,
         operation_name: str,
         query_params: typing.Union[typing.Dict[str, str], None] = None,
@@ -131,7 +131,7 @@ class Operations:
         """
 
     @typing.overload
-    def perform(
+    async def perform(
         self,
         operation_name: typing.Literal["snapshot"],
         query_params: SnapshotParameters,
@@ -147,7 +147,7 @@ class Operations:
             OperationResponse: The response from the snapshot operation.
         """
 
-    def perform(
+    async def perform(
         self,
         operation_name: typing.Union[
             typing.Literal["snapshot, vote, db/compact, cache/clear"],
@@ -173,22 +173,21 @@ class Operations:
         Returns:
             OperationResponse: The response from the performed operation.
         """
-        response: OperationResponse = self.api_call.post(
+        return await self.api_call.post(
             self._endpoint_path(operation_name),
             params=query_params,
             as_json=True,
             entity_type=OperationResponse,
         )
-        return response
 
-    def is_healthy(self) -> bool:
+    async def is_healthy(self) -> bool:
         """
         Check if the Typesense server is healthy.
 
         Returns:
             bool: True if the server is healthy, False otherwise.
         """
-        call_resp = self.api_call.get(
+        call_resp = await self.api_call.get(
             Operations.healht_path,
             as_json=True,
             entity_type=HealthCheckResponse,
@@ -199,7 +198,7 @@ class Operations:
             is_ok = False
         return is_ok
 
-    def toggle_slow_request_log(
+    async def toggle_slow_request_log(
         self,
         log_slow_requests_time_params: LogSlowRequestsTimeParams,
     ) -> typing.Dict[str, typing.Union[str, bool]]:
@@ -217,13 +216,12 @@ class Operations:
             key.replace("_", "-"): dashed_value
             for key, dashed_value in log_slow_requests_time_params.items()
         }
-        response: typing.Dict[str, typing.Union[str, bool]] = self.api_call.post(
+        return await self.api_call.post(
             Operations.config_path,
             as_json=True,
             entity_type=typing.Dict[str, typing.Union[str, bool]],
             body=data_dashed,
         )
-        return response
 
     @staticmethod
     def _endpoint_path(operation_name: str) -> str:

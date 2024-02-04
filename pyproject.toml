@@ -19,8 +19,18 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["requests"]
+dependencies = ["aiohttp>=3.10,<4"]
 dynamic = ["version"]
+
+[tool.poetry]
+name = "typesense"
+version = "1.0.0"
+description = ""
+authors = ["Fake Name fake@example.com"]
+
+[tool.poetry.dependencies]
+python = "==3.12.*|==3.13.*"
+aiohttp = "^3.10"
 
 [project.urls]
 Documentation = "https://typesense.org/"

@@ -1,2 +1,1 @@
--i https://pypi.org/simple
--r requirements/common.txt
+aiohttp>=3.10, <4

@@ -53,21 +53,20 @@ class ConversationModel:
         self.model_id = model_id
         self.api_call = api_call
 
-    def retrieve(self) -> ConversationModelSchema:
+    async def retrieve(self) -> ConversationModelSchema:
         """
         Retrieve this specific conversation model.
 
         Returns:
             ConversationModelSchema: The schema containing the conversation model details.
         """
-        response = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path,
             as_json=True,
             entity_type=ConversationModelSchema,
         )
-        return response
 
-    def update(self, model: ConversationModelCreateSchema) -> ConversationModelSchema:
+    async def update(self, model: ConversationModelCreateSchema) -> ConversationModelSchema:
         """
         Update this specific conversation model.
 
@@ -78,25 +77,23 @@ class ConversationModel:
         Returns:
             ConversationModelSchema: The schema containing the updated conversation model.
         """
-        response: ConversationModelSchema = self.api_call.put(
+        return await self.api_call.put(
             self._endpoint_path,
             body=model,
             entity_type=ConversationModelSchema,
         )
-        return response
 
-    def delete(self) -> ConversationModelDeleteSchema:
+    async def delete(self) -> ConversationModelDeleteSchema:
         """
         Delete this specific conversation model.
 
         Returns:
             ConversationModelDeleteSchema: The schema containing the deletion response.
         """
-        response: ConversationModelDeleteSchema = self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path,
             entity_type=ConversationModelDeleteSchema,
         )
-        return response
 
     @property
     def _endpoint_path(self) -> str:

@@ -76,7 +76,7 @@ class Aliases:
             self.aliases[name] = Alias(self.api_call, name)
         return self.aliases.get(name)
 
-    def upsert(self, name: str, mapping: AliasCreateSchema) -> AliasSchema:
+    async def upsert(self, name: str, mapping: AliasCreateSchema) -> AliasSchema:
         """
         Create or update an alias.
 
@@ -87,26 +87,24 @@ class Aliases:
         Returns:
             AliasSchema: The created or updated alias.
         """
-        response: AliasSchema = self.api_call.put(
+        return await self.api_call.put(
             self._endpoint_path(name),
             body=mapping,
             entity_type=AliasSchema,
         )
-        return response
 
-    def retrieve(self) -> AliasesResponseSchema:
+    async def retrieve(self) -> AliasesResponseSchema:
         """
         Retrieve all aliases.
 
         Returns:
             AliasesResponseSchema: The schema containing all aliases.
         """
-        response: AliasesResponseSchema = self.api_call.get(
+        return await self.api_call.get(
             Aliases.resource_path,
             as_json=True,
             entity_type=AliasesResponseSchema,
         )
-        return response
 
     def _endpoint_path(self, alias_name: str) -> str:
         """

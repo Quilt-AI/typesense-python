@@ -81,7 +81,7 @@ class Collections(typing.Generic[TDoc]):
             )
         return self.collections[collection_name]
 
-    def create(self, schema: CollectionCreateSchema) -> CollectionSchema:
+    async def create(self, schema: CollectionCreateSchema) -> CollectionSchema:
         """
         Create a new collection in Typesense.
 
@@ -106,15 +106,14 @@ class Collections(typing.Generic[TDoc]):
             ... }
             >>> created_schema = collections.create(schema)
         """
-        call: CollectionSchema = self.api_call.post(
+        return await self.api_call.post(
             endpoint=Collections.resource_path,
             entity_type=CollectionSchema,
             as_json=True,
             body=schema,
         )
-        return call
 
-    def retrieve(self) -> typing.List[CollectionSchema]:
+    async def retrieve(self) -> typing.List[CollectionSchema]:
         """
         Retrieve all collections from Typesense.
 
@@ -128,9 +127,8 @@ class Collections(typing.Generic[TDoc]):
             >>> for collection in all_collections:
             ...     print(collection['name'])
         """
-        call: typing.List[CollectionSchema] = self.api_call.get(
+        return await self.api_call.get(
             endpoint=Collections.resource_path,
             as_json=True,
             entity_type=typing.List[CollectionSchema],
         )
-        return call

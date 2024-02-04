@@ -47,7 +47,7 @@ class Debug:
         """
         self.api_call = api_call
 
-    def retrieve(self) -> DebugResponseSchema:
+    async def retrieve(self) -> DebugResponseSchema:
         """
         Retrieve debug information from the Typesense server.
 
@@ -57,7 +57,7 @@ class Debug:
         Returns:
             DebugResponseSchema: A schema containing the debug information.
         """
-        return self.api_call.get(
+        return await self.api_call.get(
             Debug.resource_path,
             as_json=True,
             entity_type=DebugResponseSchema,

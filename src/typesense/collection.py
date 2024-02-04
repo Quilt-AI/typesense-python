@@ -66,21 +66,20 @@ class Collection(typing.Generic[TDoc]):
         self.overrides = Overrides(api_call, name)
         self.synonyms = Synonyms(api_call, name)
 
-    def retrieve(self) -> CollectionSchema:
+    async def retrieve(self) -> CollectionSchema:
         """
         Retrieve the schema of this collection from Typesense.
 
         Returns:
             CollectionSchema: The schema of the collection.
         """
-        response: CollectionSchema = self.api_call.get(
+        return await self.api_call.get(
             endpoint=self._endpoint_path,
             entity_type=CollectionSchema,
             as_json=True,
         )
-        return response
 
-    def update(self, schema_change: CollectionUpdateSchema) -> CollectionUpdateSchema:
+    async def update(self, schema_change: CollectionUpdateSchema) -> CollectionUpdateSchema:
         """
         Update the schema of this collection in Typesense.
 
@@ -91,14 +90,13 @@ class Collection(typing.Generic[TDoc]):
         Returns:
             CollectionUpdateSchema: The updated schema of the collection.
         """
-        response: CollectionUpdateSchema = self.api_call.patch(
+        return await self.api_call.patch(
             endpoint=self._endpoint_path,
             body=schema_change,
             entity_type=CollectionUpdateSchema,
         )
-        return response
 
-    def delete(
+    async def delete(
         self,
         delete_parameters: typing.Union[
             typing.Dict[str, typing.Union[str, bool]],
@@ -115,12 +113,11 @@ class Collection(typing.Generic[TDoc]):
         Returns:
             CollectionSchema: The schema of the deleted collection.
         """
-        response: CollectionSchema = self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path,
             entity_type=CollectionSchema,
             params=delete_parameters,
         )
-        return response
 
     @property
     def _endpoint_path(self) -> str:

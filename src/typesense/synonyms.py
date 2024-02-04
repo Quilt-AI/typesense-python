@@ -87,7 +87,7 @@ class Synonyms:
             )
         return self.synonyms[synonym_id]
 
-    def upsert(self, synonym_id: str, schema: SynonymCreateSchema) -> SynonymSchema:
+    async def upsert(self, synonym_id: str, schema: SynonymCreateSchema) -> SynonymSchema:
         """
         Create or update a synonym.
 
@@ -98,25 +98,23 @@ class Synonyms:
         Returns:
             SynonymSchema: The created or updated synonym.
         """
-        response = self.api_call.put(
+        return await self.api_call.put(
             self._endpoint_path(synonym_id),
             body=schema,
             entity_type=SynonymSchema,
         )
-        return response
 
-    def retrieve(self) -> SynonymsRetrieveSchema:
+    async def retrieve(self) -> SynonymsRetrieveSchema:
         """
         Retrieve all synonyms for the collection.
 
         Returns:
             SynonymsRetrieveSchema: The schema containing all synonyms.
         """
-        response = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path(),
             entity_type=SynonymsRetrieveSchema,
         )
-        return response
 
     def _endpoint_path(self, synonym_id: typing.Union[str, None] = None) -> str:
         """
