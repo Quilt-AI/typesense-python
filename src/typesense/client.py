@@ -21,3 +21,7 @@ class Client(object):
         self.operations = Operations(self.api_call)
         self.debug = Debug(self.api_call)
         self.stopwords = Stopwords(self.api_call)
+
+
+    async def close(self):
+        await self.api_call.close()

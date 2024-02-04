@@ -29,32 +29,32 @@ class Documents(object):
         return u"{0}/{1}/{2}/{3}".format(Collections.RESOURCE_PATH, self.collection_name, Documents.RESOURCE_PATH,
                                          action)
 
-    def create(self, document, params=None):
+    async def create(self, document, params=None):
         params = params or {}
         params['action'] = 'create'
-        return self.api_call.post(self._endpoint_path(), document, params)
+        return await self.api_call.post(self._endpoint_path(), document, params)
 
-    def create_many(self, documents, params=None):
+    async def create_many(self, documents, params=None):
         logger.warning('`create_many` is deprecated: please use `import_`.')
-        return self.import_(documents, params)
+        return await self.import_(documents, params)
 
-    def upsert(self, document, params=None):
+    async def upsert(self, document, params=None):
         params = params or {}
         params['action'] = 'upsert'
-        return self.api_call.post(self._endpoint_path(), document, params)
+        return await self.api_call.post(self._endpoint_path(), document, params)
 
-    def update(self, document, params=None):
+    async def update(self, document, params=None):
         params = params or {}
         params['action'] = 'update'
-        return self.api_call.patch(self._endpoint_path(), document, params)
+        return await self.api_call.patch(self._endpoint_path(), document, params)
 
-    def import_jsonl(self, documents_jsonl):
+    async def import_jsonl(self, documents_jsonl):
         logger.warning('`import_jsonl` is deprecated: please use `import_`.')
-        return self.import_(documents_jsonl)
+        return await self.import_(documents_jsonl)
 
     # `documents` can be either a list of document objects (or)
     #  JSONL-formatted string containing multiple documents
-    def import_(self, documents, params=None, batch_size=None):
+    async def import_(self, documents, params=None, batch_size=None):
         if isinstance(documents, Iterable) and not isinstance(documents, (str, bytes)):
             if batch_size:
                 response_objs = []
@@ -62,11 +62,11 @@ class Documents(object):
                 for document in documents:
                     batch.append(document)
                     if (len(batch) == batch_size):
-                        api_response = self.import_(batch, params)
+                        api_response = await self.import_(batch, params)
                         response_objs.extend(api_response)
                         batch = []
                 if batch:
-                    api_response = self.import_(batch, params)
+                    api_response = await self.import_(batch, params)
                     response_objs.extend(api_response)
 
             else:
@@ -78,7 +78,7 @@ class Documents(object):
                     raise TypesenseClientError(f"Cannot import an empty list of documents.")
 
                 docs_import = '\n'.join(document_strs)
-                api_response = self.api_call.post(self._endpoint_path('import'), docs_import, params, as_json=False)
+                api_response = await self.api_call.post(self._endpoint_path('import'), docs_import, params, as_json=False)
                 res_obj_strs = api_response.split('\n')
 
                 response_objs = []
@@ -91,17 +91,17 @@ class Documents(object):
 
             return response_objs
         else:
-            api_response = self.api_call.post(self._endpoint_path('import'), documents, params, as_json=False)
+            api_response = await self.api_call.post(self._endpoint_path('import'), documents, params, as_json=False)
             return api_response
 
-    def export(self, params=None):
-        api_response = self.api_call.get(self._endpoint_path('export'), params, as_json=False)
+    async def export(self, params=None):
+        api_response = await self.api_call.get(self._endpoint_path('export'), params, as_json=False)
         return api_response
 
-    def search(self, search_parameters):
+    async def search(self, search_parameters):
         stringified_search_params = stringify_search_params(search_parameters)
         validate_search(stringified_search_params)
-        return self.api_call.get(self._endpoint_path('search'), stringified_search_params)
+        return await self.api_call.get(self._endpoint_path('search'), stringified_search_params)
 
-    def delete(self, params=None):
-        return self.api_call.delete(self._endpoint_path(), params)
+    async def delete(self, params=None):
+        return await self.api_call.delete(self._endpoint_path(), params)

@@ -21,8 +21,8 @@ class Overrides(object):
         return u"{0}/{1}/{2}/{3}".format(Collections.RESOURCE_PATH, self.collection_name,
                                          Overrides.RESOURCE_PATH, override_id)
 
-    def upsert(self, id, schema):
-        return self.api_call.put(self._endpoint_path(id), schema)
+    async def upsert(self, id, schema):
+        return await self.api_call.put(self._endpoint_path(id), schema)
 
-    def retrieve(self):
-        return self.api_call.get(self._endpoint_path())
+    async def retrieve(self):
+        return await self.api_call.get(self._endpoint_path())

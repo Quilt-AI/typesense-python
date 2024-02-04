@@ -15,11 +15,11 @@ class Collection(object):
         from .collections import Collections
         return u"{0}/{1}".format(Collections.RESOURCE_PATH, self.name)
 
-    def retrieve(self):
-        return self.api_call.get(self._endpoint_path())
+    async def retrieve(self):
+        return await self.api_call.get(self._endpoint_path())
 
-    def update(self, schema_change):
-        return self.api_call.patch(self._endpoint_path(), schema_change)
+    async def update(self, schema_change):
+        return await self.api_call.patch(self._endpoint_path(), schema_change)
 
-    def delete(self, params=None):
-        return self.api_call.delete(self._endpoint_path(), params)
+    async def delete(self, params=None):
+        return await self.api_call.delete(self._endpoint_path(), params)

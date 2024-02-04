@@ -9,8 +9,8 @@ class Key(object):
         from .keys import Keys
         return u"{0}/{1}".format(Keys.RESOURCE_PATH, self.key_id)
 
-    def retrieve(self):
-        return self.api_call.get(self._endpoint_path())
+    async def retrieve(self):
+        return await self.api_call.get(self._endpoint_path())
 
-    def delete(self):
-        return self.api_call.delete(self._endpoint_path())
+    async def delete(self):
+        return await self.api_call.delete(self._endpoint_path())

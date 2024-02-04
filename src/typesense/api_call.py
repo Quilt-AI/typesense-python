@@ -2,13 +2,12 @@ import copy
 import json
 import time
 
-import requests
+import aiohttp
 from .exceptions import (HTTPStatus0Error, ObjectAlreadyExists,
                          ObjectNotFound, ObjectUnprocessable,
                          RequestMalformed, RequestUnauthorized, RequestForbidden,
                          ServerError, ServiceUnavailable, TypesenseClientError)
 from .logger import logger
-session = requests.session()
 
 class ApiCall(object):
     API_KEY_HEADER_NAME = 'X-TYPESENSE-API-KEY'
@@ -17,6 +16,7 @@ class ApiCall(object):
         self.config = config
         self.nodes = copy.deepcopy(self.config.nodes)
         self.node_index = 0
+        self._session = aiohttp.ClientSession()
         self._initialize_nodes()
 
     def _initialize_nodes(self):
@@ -25,6 +25,9 @@ class ApiCall(object):
 
         for node in self.nodes:
             self.set_node_healthcheck(node, True)
+
+    async def close(self):
+        await self._session.close()
 
     def node_due_for_health_check(self, node):
         current_epoch_ts = int(time.time())
@@ -81,7 +84,7 @@ class ApiCall(object):
             return TypesenseClientError
 
     # Makes the actual http request, along with retries
-    def make_request(self, fn, endpoint, as_json, **kwargs):
+    async def make_request(self, fn, endpoint, as_json, **kwargs):
         num_tries = 0
         last_exception = None
 
@@ -98,27 +101,26 @@ class ApiCall(object):
                 if kwargs.get('data') and not (isinstance(kwargs['data'], str) or isinstance(kwargs['data'], bytes)):
                     kwargs['data'] = json.dumps(kwargs['data'])
 
-                r = fn(url, headers={ApiCall.API_KEY_HEADER_NAME: self.config.api_key}, **kwargs)
+                r = await fn(url, headers={ApiCall.API_KEY_HEADER_NAME: self.config.api_key}, **kwargs)
 
                 # Treat any status code > 0 and < 500 to be an indication that node is healthy
                 # We exclude 0 since some clients return 0 when request fails
-                if 0 < r.status_code < 500:
-                    logger.debug('{}:{} is healthy. Status code: {}'.format(node.host, node.port, r.status_code))
+                if 0 < r.status < 500:
+                    logger.debug('{}:{} is healthy. Status code: {}'.format(node.host, node.port, r.status))
                     self.set_node_healthcheck(node, True)
 
                 # We should raise a custom exception if status code is not 20X
-                if not 200 <= r.status_code < 300:
+                if not 200 <= r.status < 300:
                     if r.headers.get('Content-Type', '').startswith('application/json'):
-                        error_message = r.json().get('message', 'API error.')
+                        error_message = (await r.json()).get('message', 'API error.')
                     else:
                         error_message = 'API error.'
                     # Raised exception will be caught and retried
-                    raise ApiCall.get_exception(r.status_code)(r.status_code, error_message)
+                    raise ApiCall.get_exception(r.status)(r.status, error_message)
 
-                return r.json() if as_json else r.text
-            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError,
-                    requests.exceptions.RequestException, requests.exceptions.SSLError,
-                    HTTPStatus0Error, ServerError, ServiceUnavailable) as e:
+                return await (r.json() if as_json else r.text())
+            except (HTTPStatus0Error, ServerError, ServiceUnavailable, aiohttp.ClientConnectionError,
+                    aiohttp.ServerTimeoutError) as e:
                 # Catch the exception and retry
                 self.set_node_healthcheck(node, False)
                 logger.debug('Request to {}:{} failed because of {}'.format(node.host, node.port, e))
@@ -141,30 +143,30 @@ class ApiCall(object):
             elif params[key] == False:
                 params[key] = 'false'
 
-    def get(self, endpoint, params=None, as_json=True):
+    async def get(self, endpoint, params=None, as_json=True):
         params = params or {}
-        return self.make_request(session.get, endpoint, as_json,
+        return await self.make_request(self._session.get, endpoint, as_json,
                                  params=params,
-                                 timeout=self.config.connection_timeout_seconds, verify=self.config.verify)
+                                 timeout=self.config.connection_timeout_seconds, verify_ssl=self.config.verify)
 
-    def post(self, endpoint, body, params=None, as_json=True):
+    async def post(self, endpoint, body, params=None, as_json=True):
         params = params or {}
         ApiCall.normalize_params(params)
-        return self.make_request(session.post, endpoint, as_json,
+        return await self.make_request(self._session.post, endpoint, as_json,
                                  params=params, data=body,
-                                 timeout=self.config.connection_timeout_seconds, verify=self.config.verify)
+                                 timeout=self.config.connection_timeout_seconds, verify_ssl=self.config.verify)
 
-    def put(self, endpoint, body, params=None):
-        return self.make_request(session.put, endpoint, True,
+    async def put(self, endpoint, body, params=None):
+        return await self.make_request(self._session.put, endpoint, True,
                                  params=params, data=body,
-                                 timeout=self.config.connection_timeout_seconds, verify=self.config.verify)
+                                 timeout=self.config.connection_timeout_seconds, verify_ssl=self.config.verify)
 
-    def patch(self, endpoint, body, params=None):
-        return self.make_request(session.patch, endpoint, True,
+    async def patch(self, endpoint, body, params=None):
+        return await self.make_request(self._session.patch, endpoint, True,
                                  params=params, data=body,
-                                 timeout=self.config.connection_timeout_seconds, verify=self.config.verify)
+                                 timeout=self.config.connection_timeout_seconds, verify_ssl=self.config.verify)
 
-    def delete(self, endpoint, params=None):
-        return self.make_request(session.delete, endpoint, True,
+    async def delete(self, endpoint, params=None):
+        return await self.make_request(self._session.delete, endpoint, True,
                                  params=params, timeout=self.config.connection_timeout_seconds,
-                                 verify=self.config.verify)
+                                 verify_ssl=self.config.verify)

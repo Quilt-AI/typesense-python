@@ -7,8 +7,8 @@ class AnalyticsRule(object):
         from .analytics_rules import AnalyticsRules
         return u"{0}/{1}".format(AnalyticsRules.RESOURCE_PATH, self.rule_id)
 
-    def retrieve(self):
-        return self.api_call.get(self._endpoint_path())
+    async def retrieve(self):
+        return await self.api_call.get(self._endpoint_path())
 
-    def delete(self):
-        return self.api_call.delete(self._endpoint_path())
+    async def delete(self):
+        return await self.api_call.delete(self._endpoint_path())

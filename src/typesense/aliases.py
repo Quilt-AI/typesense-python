@@ -17,8 +17,8 @@ class Aliases(object):
     def _endpoint_path(self, alias_name):
         return u"{0}/{1}".format(Aliases.RESOURCE_PATH, alias_name)
 
-    def upsert(self, name, mapping):
-        return self.api_call.put(self._endpoint_path(name), mapping)
+    async def upsert(self, name, mapping):
+        return await self.api_call.put(self._endpoint_path(name), mapping)
 
-    def retrieve(self):
-        return self.api_call.get(Aliases.RESOURCE_PATH)
+    async def retrieve(self):
+        return await self.api_call.get(Aliases.RESOURCE_PATH)

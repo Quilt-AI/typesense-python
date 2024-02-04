@@ -5,5 +5,5 @@ class Debug(object):
         self.api_call = api_call
         self.collections = {}
 
-    def retrieve(self):
-        return self.api_call.get('{0}'.format(Debug.RESOURCE_PATH))
+    async def retrieve(self):
+        return await self.api_call.get('{0}'.format(Debug.RESOURCE_PATH))

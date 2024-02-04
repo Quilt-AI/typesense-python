@@ -19,8 +19,8 @@ class Keys(object):
 
         return self.keys.get(key_id)
 
-    def create(self, schema):
-        return self.api_call.post(Keys.RESOURCE_PATH, schema)
+    async def create(self, schema):
+        return await self.api_call.post(Keys.RESOURCE_PATH, schema)
 
     def generate_scoped_search_key(self, search_key, parameters):
         # Note: only a key generated with the `documents:search` action will be accepted by the server
@@ -32,5 +32,5 @@ class Keys(object):
         raw_scoped_key = '{}{}{}'.format(digest.decode('utf-8'), key_prefix, params_str)
         return base64.b64encode(raw_scoped_key.encode('utf-8'))
 
-    def retrieve(self):
-        return self.api_call.get('{0}'.format(Keys.RESOURCE_PATH))
+    async def retrieve(self):
+        return await self.api_call.get('{0}'.format(Keys.RESOURCE_PATH))

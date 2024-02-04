@@ -14,10 +14,10 @@ class Operations(object):
         return u"{0}/{1}".format(Operations.RESOURCE_PATH, operation_name)
 
 
-    def perform(self, operation_name, query_params=None):
+    async def perform(self, operation_name, query_params=None):
         query_params = query_params or {}
-        return self.api_call.post(self._endpoint_path(operation_name), {}, query_params)
+        return await self.api_call.post(self._endpoint_path(operation_name), {}, query_params)
     
-    def is_healthy(self)-> bool:
-        call_resp = self.api_call.get(Operations.HEALTH_PATH)
+    async def is_healthy(self)-> bool:
+        call_resp = await self.api_call.get(Operations.HEALTH_PATH)
         return call_resp.get("ok", False) if isinstance(call_resp, dict) else False

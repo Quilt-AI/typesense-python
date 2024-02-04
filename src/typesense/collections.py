@@ -14,8 +14,8 @@ class Collections(object):
 
         return self.collections.get(collection_name)
 
-    def create(self, schema):
-        return self.api_call.post(Collections.RESOURCE_PATH, schema)
+    async def create(self, schema):
+        return await self.api_call.post(Collections.RESOURCE_PATH, schema)
 
-    def retrieve(self):
-        return self.api_call.get('{0}'.format(Collections.RESOURCE_PATH))
+    async def retrieve(self):
+        return await self.api_call.get('{0}'.format(Collections.RESOURCE_PATH))

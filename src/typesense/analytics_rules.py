@@ -14,13 +14,13 @@ class AnalyticsRules(object):
 
         return self.rules[rule_id]
 
-    def create(self, rule, params=None):
+    async def create(self, rule, params=None):
         params = params or {}
-        return self.api_call.post(AnalyticsRules.RESOURCE_PATH, rule, params)
+        return await self.api_call.post(AnalyticsRules.RESOURCE_PATH, rule, params)
 
-    def upsert(self, id, rule):
-        return self.api_call.put(u"{0}/{1}".format(AnalyticsRules.RESOURCE_PATH, id), rule)
+    async def upsert(self, id, rule):
+        return await self.api_call.put(u"{0}/{1}".format(AnalyticsRules.RESOURCE_PATH, id), rule)
 
-    def retrieve(self):
-        return self.api_call.get(AnalyticsRules.RESOURCE_PATH)
+    async def retrieve(self):
+        return await self.api_call.get(AnalyticsRules.RESOURCE_PATH)
 
