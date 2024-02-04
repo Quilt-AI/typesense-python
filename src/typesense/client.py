@@ -139,3 +139,12 @@ class Client:
             name = model.__name__.lower()
         collection: Collection[TDoc] = self.collections[name]
         return collection
+
+    async def close(self):
+        await self.api_call.close()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()

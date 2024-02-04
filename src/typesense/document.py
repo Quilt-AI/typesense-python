@@ -67,21 +67,20 @@ class Document(typing.Generic[TDoc]):
         self.collection_name = collection_name
         self.document_id = document_id
 
-    def retrieve(self) -> TDoc:
+    async def retrieve(self) -> TDoc:
         """
         Retrieve this specific document.
 
         Returns:
             TDoc: The retrieved document.
         """
-        response: TDoc = self.api_call.get(
+        return await self.api_call.get(
             endpoint=self._endpoint_path,
             entity_type=typing.Dict[str, str],
             as_json=True,
         )
-        return response
 
-    def update(
+    async def update(
         self,
         document: TDoc,
         dirty_values_parameters: typing.Union[DirtyValuesParameters, None] = None,
@@ -97,15 +96,14 @@ class Document(typing.Generic[TDoc]):
         Returns:
             TDoc: The updated document.
         """
-        response = self.api_call.patch(
+        return await self.api_call.patch(
             self._endpoint_path,
             body=document,
             params=dirty_values_parameters,
             entity_type=typing.Dict[str, str],
         )
-        return typing.cast(TDoc, response)
 
-    def delete(
+    async def delete(
         self,
         delete_parameters: typing.Union[DeleteSingleDocumentParameters, None] = None,
     ) -> TDoc:
@@ -115,12 +113,11 @@ class Document(typing.Generic[TDoc]):
         Returns:
             TDoc: The deleted document.
         """
-        response: TDoc = self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path,
             entity_type=typing.Dict[str, str],
             params=delete_parameters,
         )
-        return response
 
     @property
     def _endpoint_path(self) -> str:

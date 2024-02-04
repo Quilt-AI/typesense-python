@@ -48,14 +48,14 @@ class StemmingDictionary:
         self.api_call = api_call
         self.dict_id = dict_id
 
-    def retrieve(self) -> StemmingDictionarySchema:
+    async def retrieve(self) -> StemmingDictionarySchema:
         """
         Retrieve this specific stemming dictionary.
 
         Returns:
             StemmingDictionarySchema: The schema containing the stemming dictionary details.
         """
-        response: StemmingDictionarySchema = self.api_call.get(
+        response: StemmingDictionarySchema = await self.api_call.get(
             self._endpoint_path,
             entity_type=StemmingDictionarySchema,
             as_json=True,

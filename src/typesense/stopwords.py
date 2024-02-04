@@ -79,7 +79,7 @@ class Stopwords:
             )
         return self.stopwords_sets[stopwords_set_id]
 
-    def upsert(
+    async def upsert(
         self,
         stopwords_set_id: str,
         stopwords_set: StopwordCreateSchema,
@@ -95,23 +95,21 @@ class Stopwords:
         Returns:
             StopwordSchema: The created or updated stopwords set.
         """
-        response: StopwordSchema = self.api_call.put(
+        return await self.api_call.put(
             "/".join([Stopwords.resource_path, stopwords_set_id]),
             body=stopwords_set,
             entity_type=StopwordSchema,
         )
-        return response
 
-    def retrieve(self) -> StopwordsRetrieveSchema:
+    async def retrieve(self) -> StopwordsRetrieveSchema:
         """
         Retrieve all stopwords sets.
 
         Returns:
             StopwordsRetrieveSchema: The schema containing all stopwords sets.
         """
-        response: StopwordsRetrieveSchema = self.api_call.get(
+        return await self.api_call.get(
             Stopwords.resource_path,
             as_json=True,
             entity_type=StopwordsRetrieveSchema,
         )
-        return response

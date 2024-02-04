@@ -47,32 +47,30 @@ class StopwordsSet:
         self.stopwords_set_id = stopwords_set_id
         self.api_call = api_call
 
-    def retrieve(self) -> StopwordsSingleRetrieveSchema:
+    async def retrieve(self) -> StopwordsSingleRetrieveSchema:
         """
         Retrieve this specific stopwords set.
 
         Returns:
             StopwordsSingleRetrieveSchema: The schema containing the stopwords set details.
         """
-        response: StopwordsSingleRetrieveSchema = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path,
             as_json=True,
             entity_type=StopwordsSingleRetrieveSchema,
         )
-        return response
 
-    def delete(self) -> StopwordDeleteSchema:
+    async def delete(self) -> StopwordDeleteSchema:
         """
         Delete this specific stopwords set.
 
         Returns:
             StopwordDeleteSchema: The schema containing the deletion response.
         """
-        response: StopwordDeleteSchema = self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path,
             entity_type=StopwordDeleteSchema,
         )
-        return response
 
     @property
     def _endpoint_path(self) -> str:

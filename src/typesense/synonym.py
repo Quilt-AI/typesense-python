@@ -56,23 +56,23 @@ class Synonym:
         self.collection_name = collection_name
         self.synonym_id = synonym_id
 
-    def retrieve(self) -> SynonymSchema:
+    async def retrieve(self) -> SynonymSchema:
         """
         Retrieve this specific synonym.
 
         Returns:
             SynonymSchema: The schema containing the synonym details.
         """
-        return self.api_call.get(self._endpoint_path(), entity_type=SynonymSchema)
+        return await self.api_call.get(self._endpoint_path(), entity_type=SynonymSchema)
 
-    def delete(self) -> SynonymDeleteSchema:
+    async def delete(self) -> SynonymDeleteSchema:
         """
         Delete this specific synonym.
 
         Returns:
             SynonymDeleteSchema: The schema containing the deletion response.
         """
-        return self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path(),
             entity_type=SynonymDeleteSchema,
         )

@@ -85,34 +85,34 @@ class StemmingDictionaries:
             )
         return self.stemming_dictionaries[dictionary_id]
 
-    def retrieve(self) -> StemmingDictionariesRetrieveSchema:
+    async def retrieve(self) -> StemmingDictionariesRetrieveSchema:
         """
         Retrieve the list of stemming dictionaries.
 
         Returns:
             StemmingDictionariesRetrieveSchema: The list of stemming dictionaries.
         """
-        response: StemmingDictionariesRetrieveSchema = self.api_call.get(
+        response: StemmingDictionariesRetrieveSchema = await self.api_call.get(
             self._endpoint_path(),
             entity_type=StemmingDictionariesRetrieveSchema,
         )
         return response
 
     @typing.overload
-    def upsert(
+    async def upsert(
         self,
         dictionary_id: str,
         word_root_combinations: typing.Union[str, bytes],
     ) -> str: ...
 
     @typing.overload
-    def upsert(
+    async def upsert(
         self,
         dictionary_id: str,
         word_root_combinations: typing.List[StemmingDictionaryCreateSchema],
     ) -> typing.List[StemmingDictionaryCreateSchema]: ...
 
-    def upsert(
+    async def upsert(
         self,
         dictionary_id: str,
         word_root_combinations: typing.Union[
@@ -122,17 +122,17 @@ class StemmingDictionaries:
         ],
     ) -> typing.Union[str, typing.List[StemmingDictionaryCreateSchema]]:
         if isinstance(word_root_combinations, (str, bytes)):
-            return self._upsert_raw(dictionary_id, word_root_combinations)
+            return await self._upsert_raw(dictionary_id, word_root_combinations)
 
-        return self._upsert_list(dictionary_id, word_root_combinations)
+        return await self._upsert_list(dictionary_id, word_root_combinations)
 
-    def _upsert_list(
+    async def _upsert_list(
         self,
         dictionary_id: str,
         word_root_combinations: typing.List[StemmingDictionaryCreateSchema],
     ) -> typing.List[StemmingDictionaryCreateSchema]:
         word_combos_in_jsonl = self._dump_to_jsonl(word_root_combinations)
-        response = self._upsert_raw(dictionary_id, word_combos_in_jsonl)
+        response = await self._upsert_raw(dictionary_id, word_combos_in_jsonl)
         return self._parse_response(response)
 
     def _dump_to_jsonl(
@@ -157,12 +157,12 @@ class StemmingDictionaries:
             object_list.append(decoded)
         return object_list
 
-    def _upsert_raw(
+    async def _upsert_raw(
         self,
         dictionary_id: str,
         word_root_combinations: typing.Union[bytes, str],
     ) -> str:
-        response: str = self.api_call.post(
+        response: str = await self.api_call.post(
             self._endpoint_path("import"),
             body=word_root_combinations,
             as_json=False,

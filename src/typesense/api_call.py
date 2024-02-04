@@ -34,7 +34,7 @@ by other components of the library.
 
 import sys
 
-import requests
+import aiohttp
 
 from typesense.configuration import Configuration, Node
 from typesense.exceptions import (
@@ -51,7 +51,6 @@ if sys.version_info >= (3, 11):
 else:
     import typing_extensions as typing
 
-session = requests.sessions.Session()
 TParams = typing.TypeVar("TParams")
 TBody = typing.TypeVar("TBody")
 TEntityDict = typing.TypeVar("TEntityDict")
@@ -59,21 +58,21 @@ TEntityDict = typing.TypeVar("TEntityDict")
 
 _SERVER_ERRORS: typing.Final[
     typing.Tuple[
-        typing.Type[requests.exceptions.Timeout],
-        typing.Type[requests.exceptions.ConnectionError],
-        typing.Type[requests.exceptions.HTTPError],
-        typing.Type[requests.exceptions.RequestException],
-        typing.Type[requests.exceptions.SSLError],
+        typing.Type[aiohttp.client.ServerTimeoutError],
+        typing.Type[aiohttp.client.ClientConnectionError],
+        typing.Type[aiohttp.client.ClientResponseError],
+        typing.Type[aiohttp.client.ClientPayloadError],
+        typing.Type[aiohttp.client.ClientSSLError],
         typing.Type[HTTPStatus0Error],
         typing.Type[ServerError],
         typing.Type[ServiceUnavailable],
     ]
 ] = (
-    requests.exceptions.Timeout,
-    requests.exceptions.ConnectionError,
-    requests.exceptions.HTTPError,
-    requests.exceptions.RequestException,
-    requests.exceptions.SSLError,
+    aiohttp.client.ServerTimeoutError,
+    aiohttp.client.ClientConnectionError,
+    aiohttp.client.ClientResponseError,
+    aiohttp.client.ClientPayloadError,
+    aiohttp.client.ClientSSLError,
     HTTPStatus0Error,
     ServerError,
     ServiceUnavailable,
@@ -103,9 +102,10 @@ class ApiCall:
         self.config = config
         self.node_manager = NodeManager(config)
         self.request_handler = RequestHandler(config)
+        self._session = aiohttp.ClientSession()
 
     @typing.overload
-    def get(
+    async def get(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -126,7 +126,7 @@ class ApiCall:
         """
 
     @typing.overload
-    def get(
+    async def get(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -146,7 +146,7 @@ class ApiCall:
             EntityDict: The response, as a JSON object.
         """
 
-    def get(
+    async def get(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -165,8 +165,8 @@ class ApiCall:
         Returns:
             Union[TEntityDict, str]: The response, either as a JSON object or a string.
         """
-        return self._execute_request(
-            session.get,
+        return await self._execute_request(
+            self._session.get,
             endpoint,
             entity_type,
             as_json,
@@ -174,7 +174,7 @@ class ApiCall:
         )
 
     @typing.overload
-    def post(
+    async def post(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -196,7 +196,7 @@ class ApiCall:
         """
 
     @typing.overload
-    def post(
+    async def post(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -217,7 +217,7 @@ class ApiCall:
             EntityDict: The response, as a JSON object.
         """
 
-    def post(
+    async def post(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -237,8 +237,8 @@ class ApiCall:
         Returns:
             Union[TEntityDict, str]: The response, either as a JSON object or a string.
         """
-        return self._execute_request(
-            session.post,
+        return await self._execute_request(
+            self._session.post,
             endpoint,
             entity_type,
             as_json,
@@ -246,7 +246,7 @@ class ApiCall:
             data=body,
         )
 
-    def put(
+    async def put(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -264,8 +264,8 @@ class ApiCall:
         Returns:
             EntityDict: The response, as a JSON object.
         """
-        return self._execute_request(
-            session.put,
+        return await self._execute_request(
+            self._session.put,
             endpoint,
             entity_type,
             as_json=True,
@@ -273,7 +273,7 @@ class ApiCall:
             data=body,
         )
 
-    def patch(
+    async def patch(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -291,8 +291,8 @@ class ApiCall:
         Returns:
             EntityDict: The response, as a JSON object.
         """
-        return self._execute_request(
-            session.patch,
+        return await self._execute_request(
+            self._session.patch,
             endpoint,
             entity_type,
             as_json=True,
@@ -300,7 +300,7 @@ class ApiCall:
             data=body,
         )
 
-    def delete(
+    async def delete(
         self,
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
@@ -317,8 +317,8 @@ class ApiCall:
         Returns:
             EntityDict: The response, as a JSON object.
         """
-        return self._execute_request(
-            session.delete,
+        return await self._execute_request(
+            self._session.delete,
             endpoint,
             entity_type,
             as_json=True,
@@ -326,9 +326,9 @@ class ApiCall:
         )
 
     @typing.overload
-    def _execute_request(
+    async def _execute_request(
         self,
-        fn: typing.Callable[..., requests.models.Response],
+        fn: typing.Callable[..., typing.Awaitable[aiohttp.ClientResponse]],
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
         as_json: typing.Literal[True],
@@ -365,9 +365,9 @@ class ApiCall:
         """
 
     @typing.overload
-    def _execute_request(
+    async def _execute_request(
         self,
-        fn: typing.Callable[..., requests.models.Response],
+        fn: typing.Callable[..., typing.Awaitable[aiohttp.ClientResponse]],
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
         as_json: typing.Literal[False],
@@ -403,9 +403,9 @@ class ApiCall:
             TypesenseClientError: If all nodes are unhealthy or max retries are exceeded.
         """
 
-    def _execute_request(
+    async def _execute_request(
         self,
-        fn: typing.Callable[..., requests.models.Response],
+        fn: typing.Callable[..., typing.Awaitable[aiohttp.ClientResponse]],
         endpoint: str,
         entity_type: typing.Type[TEntityDict],
         as_json: typing.Union[typing.Literal[True], typing.Literal[False]] = True,
@@ -448,7 +448,7 @@ class ApiCall:
         node, url, kwargs = self._prepare_request_params(endpoint, **kwargs)
 
         try:
-            return self._make_request_and_process_response(
+            return await self._make_request_and_process_response(
                 fn,
                 url,
                 entity_type,
@@ -457,7 +457,7 @@ class ApiCall:
             )
         except _SERVER_ERRORS as server_error:
             self.node_manager.set_node_health(node, is_healthy=False)
-            return self._execute_request(
+            return await self._execute_request(
                 fn,
                 endpoint,
                 entity_type,
@@ -467,16 +467,16 @@ class ApiCall:
                 **kwargs,
             )
 
-    def _make_request_and_process_response(
+    async def _make_request_and_process_response(
         self,
-        fn: typing.Callable[..., requests.models.Response],
+        fn: typing.Callable[..., typing.Awaitable[aiohttp.ClientResponse]],
         url: str,
         entity_type: typing.Type[TEntityDict],
         as_json: bool,
         **kwargs: SessionFunctionKwargs[TParams, TBody],
     ) -> typing.Union[TEntityDict, str]:
         """Make the API request and process the response."""
-        request_response = self.request_handler.make_request(
+        request_response = await self.request_handler.make_request(
             fn=fn,
             url=url,
             as_json=as_json,
@@ -498,7 +498,11 @@ class ApiCall:
         node = self.node_manager.get_node()
         url = node.url() + endpoint
 
-        if kwargs.get("params"):
-            self.request_handler.normalize_params(kwargs["params"])
+        params = kwargs.get("params")
+        if params:
+            self.request_handler.normalize_params(params)
 
         return node, url, kwargs
+
+    async def close(self):
+        await self._session.close()

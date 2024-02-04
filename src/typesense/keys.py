@@ -83,7 +83,7 @@ class Keys:
             self.keys[key_id] = Key(self.api_call, key_id)
         return self.keys[key_id]
 
-    def create(self, schema: ApiKeyCreateSchema) -> ApiKeyCreateResponseSchema:
+    async def create(self, schema: ApiKeyCreateSchema) -> ApiKeyCreateResponseSchema:
         """
         Create a new API key.
 
@@ -93,13 +93,12 @@ class Keys:
         Returns:
             ApiKeyCreateResponseSchema: The created API key.
         """
-        response: ApiKeySchema = self.api_call.post(
+        return await self.api_call.post(
             Keys.resource_path,
             as_json=True,
             body=schema,
             entity_type=ApiKeySchema,
         )
-        return response
 
     def generate_scoped_search_key(
         self,
@@ -131,16 +130,15 @@ class Keys:
         raw_scoped_key = f"{digest.decode('utf-8')}{key_prefix}{params_str}"
         return base64.b64encode(raw_scoped_key.encode("utf-8"))
 
-    def retrieve(self) -> ApiKeyRetrieveSchema:
+    async def retrieve(self) -> ApiKeyRetrieveSchema:
         """
         Retrieve all API keys.
 
         Returns:
             ApiKeyRetrieveSchema: The schema containing all API keys.
         """
-        response: ApiKeyRetrieveSchema = self.api_call.get(
+        return await self.api_call.get(
             Keys.resource_path,
             entity_type=ApiKeyRetrieveSchema,
             as_json=True,
         )
-        return response

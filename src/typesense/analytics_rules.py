@@ -87,7 +87,7 @@ class AnalyticsRules(object):
             self.rules[rule_id] = AnalyticsRule(self.api_call, rule_id)
         return self.rules[rule_id]
 
-    def create(
+    async def create(
         self,
         rule: typing.Union[RuleCreateSchemaForCounters, RuleCreateSchemaForQueries],
         rule_parameters: _RuleParams = None,
@@ -109,7 +109,7 @@ class AnalyticsRules(object):
                 The created rule. Returns RuleSchemaForCounters for counter rules
                 and RuleSchemaForQueries for query rules.
         """
-        response: typing.Union[RuleSchemaForCounters, RuleSchemaForQueries] = (
+        return await (
             self.api_call.post(
                 AnalyticsRules.resource_path,
                 body=rule,
@@ -121,9 +121,8 @@ class AnalyticsRules(object):
                 ],
             )
         )
-        return response
 
-    def upsert(
+    async def upsert(
         self,
         rule_id: str,
         rule: typing.Union[RuleCreateSchemaForQueries, RuleSchemaForCounters],
@@ -138,7 +137,7 @@ class AnalyticsRules(object):
         Returns:
             Union[RuleSchemaForCounters, RuleCreateSchemaForQueries]: The upserted rule.
         """
-        response = self.api_call.put(
+        response = await self.api_call.put(
             "/".join([AnalyticsRules.resource_path, rule_id]),
             body=rule,
             entity_type=typing.Union[RuleSchemaForQueries, RuleSchemaForCounters],
@@ -148,16 +147,15 @@ class AnalyticsRules(object):
             response,
         )
 
-    def retrieve(self) -> RulesRetrieveSchema:
+    async def retrieve(self) -> RulesRetrieveSchema:
         """
         Retrieve all analytics rules.
 
         Returns:
             RulesRetrieveSchema: The schema containing all analytics rules.
         """
-        response: RulesRetrieveSchema = self.api_call.get(
+        return await self.api_call.get(
             AnalyticsRules.resource_path,
             as_json=True,
             entity_type=RulesRetrieveSchema,
         )
-        return response

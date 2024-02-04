@@ -58,7 +58,7 @@ class AnalyticsRule:
         self.api_call = api_call
         self.rule_id = rule_id
 
-    def retrieve(
+    async def retrieve(
         self,
     ) -> typing.Union[RuleSchemaForQueries, RuleSchemaForCounters]:
         """
@@ -68,28 +68,25 @@ class AnalyticsRule:
             Union[RuleSchemaForQueries, RuleSchemaForCounters]:
               The schema containing the rule details.
         """
-        response: typing.Union[RuleSchemaForQueries, RuleSchemaForCounters] = (
+        return await (
             self.api_call.get(
                 self._endpoint_path,
                 entity_type=typing.Union[RuleSchemaForQueries, RuleSchemaForCounters],
                 as_json=True,
             )
         )
-        return response
 
-    def delete(self) -> RuleDeleteSchema:
+    async def delete(self) -> RuleDeleteSchema:
         """
         Delete this specific analytics rule.
 
         Returns:
             RuleDeleteSchema: The schema containing the deletion response.
         """
-        response: RuleDeleteSchema = self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path,
             entity_type=RuleDeleteSchema,
         )
-
-        return response
 
     @property
     def _endpoint_path(self) -> str:

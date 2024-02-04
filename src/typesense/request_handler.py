@@ -25,7 +25,7 @@ import json
 import sys
 from types import MappingProxyType
 
-import requests
+import aiohttp
 
 if sys.version_info >= (3, 11):
     import typing
@@ -116,7 +116,7 @@ class RequestHandler:
     @typing.overload
     def make_request(
         self,
-        fn: typing.Callable[..., requests.models.Response],
+        fn: typing.Callable[..., typing.Awaitable[aiohttp.ClientResponse]],
         url: str,
         entity_type: typing.Type[TEntityDict],
         as_json: typing.Literal[False],
@@ -149,7 +149,7 @@ class RequestHandler:
     @typing.overload
     def make_request(
         self,
-        fn: typing.Callable[..., requests.models.Response],
+        fn: typing.Callable[..., typing.Awaitable[aiohttp.ClientResponse]],
         url: str,
         entity_type: typing.Type[TEntityDict],
         as_json: typing.Literal[True],
@@ -176,9 +176,9 @@ class RequestHandler:
             TypesenseClientError: If the API returns an error response.
         """
 
-    def make_request(
+    async def make_request(
         self,
-        fn: typing.Callable[..., requests.models.Response],
+        fn: typing.Callable[..., typing.Awaitable[aiohttp.ClientResponse]],
         url: str,
         entity_type: typing.Type[TEntityDict],
         as_json: typing.Union[typing.Literal[True], typing.Literal[False]] = True,
@@ -211,24 +211,24 @@ class RequestHandler:
 
         kwargs.setdefault("headers", {}).update(headers)
         kwargs.setdefault("timeout", self.config.connection_timeout_seconds)
-        kwargs.setdefault("verify", self.config.verify)
+        kwargs.pop("verify", None)  # NOTE(mgraczyk): No SSL verification in aiohttp
         if kwargs.get("data") and not isinstance(kwargs["data"], (str, bytes)):
             kwargs["data"] = json.dumps(kwargs["data"])
 
-        response = fn(url, **kwargs)
+        response = await fn(url, **kwargs)
 
-        if response.status_code < 200 or response.status_code >= 300:
-            error_message = self._get_error_message(response)
-            raise self._get_exception(response.status_code)(
-                response.status_code,
+        if response.status < 200 or response.status >= 300:
+            error_message = await self._get_error_message(response)
+            raise self._get_exception(response.status)(
+                response.status,
                 error_message,
             )
 
         if as_json:
-            res: TEntityDict = response.json()
+            res: TEntityDict = await response.json()
             return res
 
-        return response.text
+        return await response.text()
 
     @staticmethod
     def normalize_params(params: TParams) -> None:
@@ -248,7 +248,7 @@ class RequestHandler:
                 params[key] = str(parameter_value).lower()
 
     @staticmethod
-    def _get_error_message(response: requests.Response) -> str:
+    async def _get_error_message(response: aiohttp.ClientResponse) -> str:
         """
         Extract the error message from an API response.
 
@@ -260,7 +260,7 @@ class RequestHandler:
         """
         content_type = response.headers.get("Content-Type", "")
         if content_type.startswith("application/json"):
-            err_message: str = response.json().get("message", "API error.")
+            err_message: str = (await response.json()).get("message", "API error.")
             return err_message
         return "API error."
 

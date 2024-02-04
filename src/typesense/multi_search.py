@@ -54,7 +54,7 @@ class MultiSearch:
         """
         self.api_call = api_call
 
-    def perform(
+    async def perform(
         self,
         search_queries: MultiSearchRequestSchema,
         common_params: typing.Union[MultiSearchCommonParameters, None] = None,
@@ -84,11 +84,10 @@ class MultiSearch:
             for search_params in search_queries.get("searches")
         ]
         search_body = {"searches": stringified_search_params}
-        response: MultiSearchResponse = self.api_call.post(
+        return await self.api_call.post(
             MultiSearch.resource_path,
             body=search_body,
             params=common_params,
             as_json=True,
             entity_type=MultiSearchResponse,
         )
-        return response

@@ -123,7 +123,7 @@ class Documents(typing.Generic[TDoc]):
 
         return self.documents[document_id]
 
-    def create(
+    async def create(
         self,
         document: TDoc,
         dirty_values_parameters: typing.Union[DirtyValuesParameters, None] = None,
@@ -141,16 +141,15 @@ class Documents(typing.Generic[TDoc]):
         """
         dirty_values_parameters = dirty_values_parameters or {}
         dirty_values_parameters["action"] = "create"
-        response: TDoc = self.api_call.post(
+        return await self.api_call.post(
             self._endpoint_path(),
             body=document,
             params=dirty_values_parameters,
             as_json=True,
             entity_type=typing.Dict[str, str],
         )
-        return response
 
-    def create_many(
+    async def create_many(
         self,
         documents: typing.List[TDoc],
         dirty_values_parameters: typing.Union[DirtyValuesParameters, None] = None,
@@ -168,9 +167,9 @@ class Documents(typing.Generic[TDoc]):
                 The list of import responses.
         """
         logger.warn("`create_many` is deprecated: please use `import_`.")
-        return self.import_(documents, dirty_values_parameters)
+        return await self.import_(documents, dirty_values_parameters)
 
-    def upsert(
+    async def upsert(
         self,
         document: TDoc,
         dirty_values_parameters: typing.Union[DirtyValuesParameters, None] = None,
@@ -188,16 +187,15 @@ class Documents(typing.Generic[TDoc]):
         """
         dirty_values_parameters = dirty_values_parameters or {}
         dirty_values_parameters["action"] = "upsert"
-        response: TDoc = self.api_call.post(
+        return await self.api_call.post(
             self._endpoint_path(),
             body=document,
             params=dirty_values_parameters,
             as_json=True,
             entity_type=typing.Dict[str, str],
         )
-        return response
 
-    def update(
+    async def update(
         self,
         document: TDoc,
         dirty_values_parameters: typing.Union[UpdateByFilterParameters, None] = None,
@@ -215,15 +213,14 @@ class Documents(typing.Generic[TDoc]):
         """
         dirty_values_parameters = dirty_values_parameters or {}
         dirty_values_parameters["action"] = "update"
-        response: UpdateByFilterResponse = self.api_call.patch(
+        return await self.api_call.patch(
             self._endpoint_path(),
             body=document,
             params=dirty_values_parameters,
             entity_type=UpdateByFilterResponse,
         )
-        return response
 
-    def import_jsonl(self, documents_jsonl: str) -> str:
+    async def import_jsonl(self, documents_jsonl: str) -> str:
         """
         Import documents from a JSONL string.
 
@@ -234,10 +231,10 @@ class Documents(typing.Generic[TDoc]):
             str: The import response as a string.
         """
         logger.warning("`import_jsonl` is deprecated: please use `import_`.")
-        return self.import_(documents_jsonl)
+        return await self.import_(documents_jsonl)
 
     @typing.overload
-    def import_(
+    async def import_(
         self,
         documents: typing.List[TDoc],
         import_parameters: DocumentImportParametersReturnDocAndId,
@@ -247,7 +244,7 @@ class Documents(typing.Generic[TDoc]):
     ]: ...
 
     @typing.overload
-    def import_(
+    async def import_(
         self,
         documents: typing.List[TDoc],
         import_parameters: DocumentImportParametersReturnId,
@@ -255,7 +252,7 @@ class Documents(typing.Generic[TDoc]):
     ) -> typing.List[typing.Union[ImportResponseWithId, ImportResponseFail[TDoc]]]: ...
 
     @typing.overload
-    def import_(
+    async def import_(
         self,
         documents: typing.List[TDoc],
         import_parameters: typing.Union[DocumentWriteParameters, None] = None,
@@ -263,7 +260,7 @@ class Documents(typing.Generic[TDoc]):
     ) -> typing.List[typing.Union[ImportResponseSuccess, ImportResponseFail[TDoc]]]: ...
 
     @typing.overload
-    def import_(
+    async def import_(
         self,
         documents: typing.List[TDoc],
         import_parameters: DocumentImportParametersReturnDoc,
@@ -273,7 +270,7 @@ class Documents(typing.Generic[TDoc]):
     ]: ...
 
     @typing.overload
-    def import_(
+    async def import_(
         self,
         documents: typing.List[TDoc],
         import_parameters: _ImportParameters,
@@ -281,14 +278,14 @@ class Documents(typing.Generic[TDoc]):
     ) -> typing.List[ImportResponse[TDoc]]: ...
 
     @typing.overload
-    def import_(
+    async def import_(
         self,
         documents: typing.Union[bytes, str],
         import_parameters: _ImportParameters = None,
         batch_size: typing.Union[int, None] = None,
     ) -> str: ...
 
-    def import_(
+    async def import_(
         self,
         documents: typing.Union[bytes, str, typing.List[TDoc]],
         import_parameters: _ImportParameters = None,
@@ -312,14 +309,14 @@ class Documents(typing.Generic[TDoc]):
             TypesenseClientError: If an empty list of documents is provided.
         """
         if isinstance(documents, (str, bytes)):
-            return self._import_raw(documents, import_parameters)
+            return await self._import_raw(documents, import_parameters)
 
         if batch_size:
-            return self._batch_import(documents, import_parameters, batch_size)
+            return await self._batch_import(documents, import_parameters, batch_size)
 
-        return self._bulk_import(documents, import_parameters)
+        return await self._bulk_import(documents, import_parameters)
 
-    def export(
+    async def export(
         self,
         export_parameters: typing.Union[DocumentExportParameters, None] = None,
     ) -> str:
@@ -333,15 +330,14 @@ class Documents(typing.Generic[TDoc]):
         Returns:
             str: The exported documents as a string.
         """
-        api_response: str = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path("export"),
             params=export_parameters,
             as_json=False,
             entity_type=str,
         )
-        return api_response
 
-    def search(self, search_parameters: SearchParameters) -> SearchResponse[TDoc]:
+    async def search(self, search_parameters: SearchParameters) -> SearchResponse[TDoc]:
         """
         Search for documents in the collection.
 
@@ -352,15 +348,14 @@ class Documents(typing.Generic[TDoc]):
             SearchResponse[TDoc]: The search response containing matching documents.
         """
         stringified_search_params = stringify_search_params(search_parameters)
-        response: SearchResponse[TDoc] = self.api_call.get(
+        return await self.api_call.get(
             self._endpoint_path("search"),
             params=stringified_search_params,
             entity_type=SearchResponse,
             as_json=True,
         )
-        return response
 
-    def delete(
+    async def delete(
         self,
         delete_parameters: typing.Union[DeleteQueryParameters, None] = None,
     ) -> DeleteResponse:
@@ -374,12 +369,11 @@ class Documents(typing.Generic[TDoc]):
         Returns:
             DeleteResponse: The response containing information about the deletion.
         """
-        response: DeleteResponse = self.api_call.delete(
+        return await self.api_call.delete(
             self._endpoint_path(),
             params=delete_parameters,
             entity_type=DeleteResponse,
         )
-        return response
 
     def _endpoint_path(self, action: typing.Union[str, None] = None) -> str:
         """
@@ -403,13 +397,13 @@ class Documents(typing.Generic[TDoc]):
             ],
         )
 
-    def _import_raw(
+    async def _import_raw(
         self,
         documents: typing.Union[bytes, str],
         import_parameters: _ImportParameters,
     ) -> str:
         """Import raw document data."""
-        response: str = self.api_call.post(
+        return await self.api_call.post(
             self._endpoint_path("import"),
             body=documents,
             params=import_parameters,
@@ -417,9 +411,7 @@ class Documents(typing.Generic[TDoc]):
             entity_type=str,
         )
 
-        return response
-
-    def _batch_import(
+    async def _batch_import(
         self,
         documents: typing.List[TDoc],
         import_parameters: _ImportParameters,
@@ -429,11 +421,11 @@ class Documents(typing.Generic[TDoc]):
         response_objs: ImportResponse[TDoc] = []
         for batch_index in range(0, len(documents), batch_size):
             batch = documents[batch_index : batch_index + batch_size]
-            api_response = self._bulk_import(batch, import_parameters)
+            api_response = await self._bulk_import(batch, import_parameters)
             response_objs.extend(api_response)
         return response_objs
 
-    def _bulk_import(
+    async def _bulk_import(
         self,
         documents: typing.List[TDoc],
         import_parameters: _ImportParameters,
@@ -444,7 +436,7 @@ class Documents(typing.Generic[TDoc]):
             raise TypesenseClientError("Cannot import an empty list of documents.")
 
         docs_import = "\n".join(document_strs)
-        res = self.api_call.post(
+        res = await self.api_call.post(
             self._endpoint_path("import"),
             body=docs_import,
             params=import_parameters,
