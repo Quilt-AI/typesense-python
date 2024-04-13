@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import json
 import time
@@ -126,7 +127,7 @@ class ApiCall(object):
                 logger.debug('Request to {}:{} failed because of {}'.format(node.host, node.port, e))
                 logger.debug('Sleeping for {} and retrying...'.format(self.config.retry_interval_seconds))
                 last_exception = e
-                time.sleep(self.config.retry_interval_seconds)
+                await asyncio.sleep(self.config.retry_interval_seconds)
 
         logger.debug('No retries left. Raising last exception: {}'.format(last_exception))
         raise last_exception
