@@ -14,8 +14,8 @@ class Stopwords(object):
 
         return self.stopwords_sets.get(stopwords_set_id)
 
-    def upsert(self, stopwords_set_id, stopwords_set):
-        return self.api_call.put('{}/{}'.format(Stopwords.RESOURCE_PATH, stopwords_set_id), stopwords_set)
+    async def upsert(self, stopwords_set_id, stopwords_set):
+        return await self.api_call.put('{}/{}'.format(Stopwords.RESOURCE_PATH, stopwords_set_id), stopwords_set)
 
-    def retrieve(self):
-        return self.api_call.get('{0}'.format(Stopwords.RESOURCE_PATH))
+    async def retrieve(self):
+        return await self.api_call.get('{0}'.format(Stopwords.RESOURCE_PATH))
