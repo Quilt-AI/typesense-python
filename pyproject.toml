@@ -19,7 +19,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["aiohttp==3.9.*"]
+dependencies = ["aiohttp >= 3.9, <4"]
 dynamic = ["version"]
 
 [project.urls]
